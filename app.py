@@ -6,9 +6,6 @@ import seaborn as sns
 import pickle
 import sys
 
-if not hasattr(np, '_core'):
-    np._core = np.core
-    sys.modules['numpy._core'] = np.core
 
 # Настройка
 st.set_page_config(page_title="Предсказание стоимости автомобилей", page_icon="🚗")
