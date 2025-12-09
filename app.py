@@ -41,7 +41,7 @@ if page == "EDA":
         ["Pairplot", "Heatmap корреляций"]
     )
     
-    # 1. PAIRPLOT (из задания 6 проекта)
+    # 1. PAIRPLOT 
     if viz_option == "Pairplot":
         st.header("Pairplot данных")
         
