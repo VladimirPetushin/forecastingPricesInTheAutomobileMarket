@@ -1,33 +1,10 @@
 import streamlit as st
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pickle
 import sys
-
-class FakeNumpyCore(types.ModuleType):
-    def __init__(self):
-        super().__init__('numpy._core')
-        # Импортируем реальный numpy
-        import numpy as np
-        self._np = np
-
-        for attr in dir(np.core):
-            if not attr.startswith('_'):
-                setattr(self, attr, getattr(np.core, attr))
-        
-        self.numeric = np.core._multiarray_umath
-
-        self.multiarray = np.core._multiarray_umath
-        self.umath = np.core._multiarray_umath
-
-sys.modules['numpy._core'] = FakeNumpyCore()
-sys.modules['numpy._core.numeric'] = sys.modules['numpy._core'].numeric
-
-import numpy as np
-
-if not hasattr(np, '_core'):
-    np._core = sys.modules['numpy._core']
 
 # Настройка
 st.set_page_config(page_title="Предсказание стоимости автомобилей", page_icon="🚗")
