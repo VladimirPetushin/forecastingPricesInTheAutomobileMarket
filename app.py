@@ -299,6 +299,8 @@ elif page=="Прогноз":
                     if selected_model == LINEAR_MODEL_NAME:
                         df_pred = prepare_linear_prediction_frame(df_input)
                         predictions = np.asarray(model.predict(df_pred))
+                        predictions = np.expm1(predictions)
+                        predictions = np.clip(predictions, 0, None)
                     else:
                         df_pred = prepare_catboost_prediction_frame(df_input)
                         predictions = np.asarray(model.predict(df_pred))
