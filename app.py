@@ -4,6 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pickle
+import sys
 from pathlib import Path
 
 # Настройка
@@ -53,8 +54,23 @@ def preprocess_data(df):
     return df_processed
 
 
+def ensure_numpy_pickle_compatibility():
+    import numpy.core.multiarray as multiarray
+    import numpy.core.numeric as numeric
+    import numpy.core.numerictypes as numerictypes
+    import numpy.core.umath as umath
+
+    sys.modules.setdefault('numpy._core', np.core)
+    sys.modules.setdefault('numpy._core.numeric', numeric)
+    sys.modules.setdefault('numpy._core.numerictypes', numerictypes)
+    sys.modules.setdefault('numpy._core.multiarray', multiarray)
+    sys.modules.setdefault('numpy._core.umath', umath)
+
+
 @st.cache_resource
 def load_artifacts(model_name):
+    ensure_numpy_pickle_compatibility()
+
     if model_name == LINEAR_MODEL_NAME:
         model_path = MODEL_DIR / 'linear_regression_model.pkl'
         params_path = MODEL_DIR / 'linear_regression_params.pkl'
@@ -120,6 +136,9 @@ def prepare_catboost_prediction_frame(input_df):
             reference_values = reference_frame[column] if column in reference_frame.columns else frame[column]
             fill_value = pd.to_numeric(reference_values, errors='coerce').median()
             frame[column] = pd.to_numeric(frame[column], errors='coerce').fillna(fill_value)
+
+    if 'seats' in frame.columns:
+        frame['seats'] = pd.to_numeric(frame['seats'], errors='coerce').fillna(reference_frame['seats'].median()).round().astype('Int64').astype(str)
 
     return frame
 
