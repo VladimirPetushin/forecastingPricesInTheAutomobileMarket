@@ -165,6 +165,8 @@ def prepare_catboost_prediction_frame(input_df):
             fill_value = pd.to_numeric(reference_values, errors='coerce').median()
             frame[column] = pd.to_numeric(frame[column], errors='coerce').fillna(fill_value)
 
+    frame['seats'] = pd.to_numeric(frame['seats'], errors='coerce').fillna(reference_frame['seats'].median()).round().astype('Int64').astype(str)
+
     return frame[CATBOOST_FEATURE_COLUMNS]
 
 
