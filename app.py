@@ -30,6 +30,25 @@ REQUIRED_INPUT_COLUMNS = [
     'seats',
 ]
 
+CATBOOST_FEATURE_COLUMNS = [
+    'name',
+    'year',
+    'km_driven',
+    'fuel',
+    'seller_type',
+    'transmission',
+    'owner',
+    'mileage',
+    'engine',
+    'max_power',
+    'seats',
+    'brand',
+    'car_age',
+    'km_per_year',
+    'power_per_engine',
+    'engine_x_power',
+]
+
 @st.cache_data
 def load_data():
     local_data_path = BASE_DIR / 'cars_train.csv'
@@ -106,6 +125,9 @@ def add_feature_engineering(df):
 
     frame = preprocess_data(df)
 
+    if 'torque' in frame.columns:
+        frame = frame.drop(columns=['torque'])
+
     if 'name' in frame.columns:
         frame['brand'] = frame['name'].astype(str).str.split().str[0]
 
@@ -127,9 +149,15 @@ def prepare_catboost_prediction_frame(input_df):
     frame = frame.drop(columns=['selling_price'], errors='ignore')
 
     reference_frame = add_feature_engineering(df).drop(columns=['selling_price'], errors='ignore')
-    reference_frame = reference_frame[reference_frame.columns.intersection(frame.columns)]
 
-    for column in frame.columns:
+    missing_columns = [column for column in CATBOOST_FEATURE_COLUMNS if column not in frame.columns]
+    if missing_columns:
+        raise ValueError(
+            "В загруженном CSV не хватает признаков для CatBoost: "
+            + ", ".join(missing_columns)
+        )
+
+    for column in CATBOOST_FEATURE_COLUMNS:
         if frame[column].dtype == 'object':
             frame[column] = frame[column].fillna('NA').astype(str)
         else:
@@ -137,10 +165,7 @@ def prepare_catboost_prediction_frame(input_df):
             fill_value = pd.to_numeric(reference_values, errors='coerce').median()
             frame[column] = pd.to_numeric(frame[column], errors='coerce').fillna(fill_value)
 
-    if 'seats' in frame.columns:
-        frame['seats'] = pd.to_numeric(frame['seats'], errors='coerce').fillna(reference_frame['seats'].median()).round().astype('Int64').astype(str)
-
-    return frame
+    return frame[CATBOOST_FEATURE_COLUMNS]
 
 
 def get_linear_feature_names(model, params):
